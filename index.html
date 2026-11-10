@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="de">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="theme-color" content="#10130f">
+	<title>PlayGTA5 – Browser-Startseite</title>
+	<style>
+		:root { color-scheme: dark; font-family: Inter, "Segoe UI", Arial, sans-serif; background: #10130f; color: #f4f4ed; }
+		* { box-sizing: border-box; }
+		body { min-height: 100vh; margin: 0; display: grid; place-items: center; padding: 28px 18px; background: radial-gradient(ellipse at 50% 0, #303d2b 0, #171c16 42%, #10130f 78%); }
+		main { width: min(100%, 760px); }
+		.brand { display: flex; align-items: center; gap: 12px; margin-bottom: 26px; color: #bbc8ad; font-size: 13px; letter-spacing: .12em; text-transform: uppercase; }
+		.mark { width: 34px; height: 34px; display: grid; place-items: center; border: 1px solid #77905f; border-radius: 9px; color: #c5e19e; font-weight: 800; letter-spacing: 0; }
+		.card { padding: clamp(25px, 6vw, 54px); border: 1px solid #394236; border-radius: 20px; background: linear-gradient(145deg, rgba(33, 41, 30, .96), rgba(22, 27, 21, .97)); box-shadow: 0 28px 90px #0008; }
+		.eyebrow { color: #b3d489; font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+		h1 { margin: 12px 0 12px; font-size: clamp(36px, 8vw, 66px); line-height: 1; letter-spacing: -.055em; }
+		.lead { max-width: 570px; margin: 0; color: #c4c9bd; font-size: 17px; line-height: 1.65; }
+		.status { display: flex; align-items: flex-start; gap: 13px; margin: 30px 0 24px; padding: 18px; border: 1px solid #755b31; border-radius: 13px; background: #302719; }
+		.status.ready { border-color: #536e43; background: #202c1d; }
+		.dot { flex: 0 0 10px; height: 10px; margin-top: 5px; border-radius: 50%; background: #e4b75f; box-shadow: 0 0 16px #e4b75f55; }
+		.ready .dot { background: #a8d780; box-shadow: 0 0 16px #a8d78055; }
+		.status h2 { margin: 0 0 6px; font-size: 15px; }
+		.status p { margin: 0; color: #c8c3b7; font-size: 14px; line-height: 1.55; }
+		.actions { display: flex; flex-wrap: wrap; gap: 12px; }
+		.button { min-height: 48px; display: inline-flex; align-items: center; justify-content: center; padding: 0 19px; border: 1px solid #59664e; border-radius: 10px; color: #f6f7f1; background: #323d2c; text-decoration: none; font-weight: 700; transition: background .15s, transform .15s; }
+		.button:hover:not([aria-disabled="true"]) { transform: translateY(-1px); background: #425238; }
+		.button.primary { border-color: #a6cb7c; color: #14200e; background: #b2d987; }
+		.button.primary:hover:not([aria-disabled="true"]) { background: #c6e7a2; }
+		.button[aria-disabled="true"] { cursor: not-allowed; opacity: .48; }
+		.note { margin: 25px 0 0; padding-top: 18px; border-top: 1px solid #394236; color: #aeb4a6; font-size: 13px; line-height: 1.6; }
+		code { color: #c5e19e; font-family: Consolas, monospace; font-size: .94em; }
+		footer { margin: 20px 3px 0; color: #828a7c; font-size: 12px; }
+		@media (max-width: 480px) { .actions { display: grid; } .button { width: 100%; } }
+	</style>
+</head>
+<body>
+	<main>
+		<div class="brand"><span class="mark">V</span><span>Browser client</span></div>
+		<section class="card" aria-labelledby="title">
+			<div class="eyebrow">PlayGTA5</div>
+			<h1 id="title">Los geht’s.</h1>
+			<p class="lead">Diese Startseite prüft, ob der Browser-Client und die benötigten Spieldateien auf diesem Host liegen.</p>
+			<div class="status" id="status" role="status" aria-live="polite">
+				<span class="dot" aria-hidden="true"></span>
+				<div><h2 id="status-title">Dateien werden geprüft …</h2><p id="status-text">Einen Moment bitte.</p></div>
+			</div>
+			<div class="actions">
+				<a class="button primary" id="start" aria-disabled="true" tabindex="-1">Browser-Client starten</a>
+				<a class="button" href="README.md">Installationshinweise</a>
+			</div>
+			<p class="note">Der GitHub-Quellcode enthält nicht automatisch den vollständigen Spiel-Mirror. Für einen lauffähigen Host müssen unter anderem <code>/data/manifest.json</code> und <code>/b/8b0b5899ed/game.wasm</code> vorhanden sein.</p>
+		</section>
+		<footer>WebGPU und aktuelle Browser-Unterstützung erforderlich.</footer>
+	</main>
+	<script>
+		const statusBox = document.querySelector('#status');
+		const statusTitle = document.querySelector('#status-title');
+		const statusText = document.querySelector('#status-text');
+		const start = document.querySelector('#start');
+		async function exists(path) {
+			try {
+				const response = await fetch(path, { method: 'HEAD', cache: 'no-store' });
+				return response.ok;
+			} catch { return false; }
+		}
+		Promise.all(['/data/manifest.json', '/b/8b0b5899ed/game.wasm', '/loader.js'].map(exists)).then((results) => {
+			if (results.every(Boolean)) {
+				statusBox.classList.add('ready');
+				statusTitle.textContent = 'Bereit zum Start';
+				statusText.textContent = 'Client und erforderliche Spieldateien wurden gefunden.';
+				start.href = 'homepage.html';
+				start.removeAttribute('aria-disabled');
+				start.removeAttribute('tabindex');
+			} else {
+				const missing = ['/data/manifest.json', '/b/8b0b5899ed/game.wasm', '/loader.js'].filter((_, index) => !results[index]);
+				statusTitle.textContent = 'Spieldateien fehlen';
+				statusText.textContent = `Nicht gefunden: ${missing.join(', ')}. Ergänze den vollständigen Mirror im Netlify-Veröffentlichungsordner.`;
+			}
+		});
+	</script>
+</body>
+</html>
